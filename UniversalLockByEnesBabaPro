@@ -1,0 +1,526 @@
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bobbbb-b/nyulabutlowbudget/main/Lib%20(1).txt"))()
+
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local TextButton = Instance.new("TextButton")
+local UITextSizeConstraint = Instance.new("UITextSizeConstraint")
+
+--Properties:
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(139, 0, 0) -- KIRMIZI
+Frame.BackgroundTransparency = 0
+Frame.Position = UDim2.new(1, -120, 0, 0)
+Frame.Size = UDim2.new(0, 100, 0, 50)
+
+TextButton.Parent = Frame
+TextButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0) -- KIRMIZI
+TextButton.BackgroundTransparency = 1.000
+TextButton.Size = UDim2.new(1, 0, 1, 0)
+TextButton.Font = Enum.Font.SourceSans
+TextButton.Text = "Astral"
+TextButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Beyaz text kontrast için
+TextButton.TextScaled = true
+TextButton.TextSize = 30
+TextButton.TextStrokeColor3 = Color3.fromRGB(139, 0, 0) -- KIRMIZI stroke
+TextButton.TextStrokeTransparency = 0.000
+TextButton.TextWrapped = true
+TextButton.MouseButton1Down:Connect(function()
+    library:ToggleMenu()
+end)
+
+UITextSizeConstraint.Parent = TextButton
+UITextSizeConstraint.MaxTextSize = 30
+
+local player = game.Players.LocalPlayer
+
+local hitsounds = {
+    {name = "bell.wav", url = "https://github.com/nyulachan/nyula/blob/main/Sounds/bell.wav?raw=true"},
+    {name = "bepis.wav", url = "https://github.com/nyulachan/nyula/blob/main/Sounds/bepis.wav?raw=true"},
+    {name = "bubble.wav", url = "https://github.com/nyulachan/nyula/blob/main/Sounds/bubble.wav?raw=true"},
+    {name = "cock.wav", url = "https://github.com/nyulachan/nyula/blob/main/Sounds/cock.wav?raw=true"},
+    {name = "cod.wav", url = "https://github.com/nyulachan/nyula/blob/main/Sounds/cod.wav?raw=true"},
+    {name = "fatality.wav", url = "https://github.com/nyulachan/nyula/blob/main/Sounds/fatality.wav?raw=true"},
+    {name = "phonk.wav", url = "https://github.com/nyulachan/nyula/blob/main/Sounds/phonk.wav?raw=true"},
+    {name = "sparkle.wav", url = "https://github.com/nyulachan/nyula/blob/main/Sounds/sparkle.wav?raw=true"}
+}
+
+if not isfolder("hitsounds") then
+    makefolder("hitsounds")
+end
+
+for _, sound in pairs(hitsounds) do
+    local path = "hitsounds" .. "/" .. sound.name
+    if not isfile(path) then
+        writefile(path, game:HttpGet(sound.url))
+    end
+end
+
+local woah = library:New("Astral.lua")
+local misc = woah:Tab("Combat")
+local gaey = woah:Tab("Mods")
+local visu = woah:Tab("Visualization")
+local braeuh = woah:Tab("Configs")
+
+local Haka = gaey:MSector("Mods", "Left")
+local Lalaka = Haka:Tab("Local")
+local Halaka = Haka:Tab("Anti")
+local Galala = Haka:Tab("CSync")
+local Bakala = Haka:Tab("Fun")
+
+-- Add Target Filter feature to the Mods tab
+local TargetFilterTab = Haka:Tab("Target Filter")
+
+TargetFilterTab:Element("Dropdown", "Target Type", {options = {"Both", "Players Only", "NPCs Only"}, default = "Both"}, function(tbll)
+    getgenv().TargetFilter = tbll.Dropdown
+    if tbll.Dropdown == "Both" then
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Astral.lua",
+            Text = "Target Filter: Both Players and NPCs",
+            Duration = 3
+        })
+    elseif tbll.Dropdown == "Players Only" then
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Astral.lua",
+            Text = "Target Filter: Players Only",
+            Duration = 3
+        })
+    else
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Astral.lua",
+            Text = "Target Filter: NPCs Only",
+            Duration = 3
+        })
+    end
+end)
+
+-- Add Wall Check feature to the Mods tab
+local WallCheckTab = Haka:Tab("Wall Check")
+
+WallCheckTab:Element("Toggle", "Enable Wall Check", {default = false}, function(tbll)
+    getgenv().WallCheck = tbll.Toggle
+    if tbll.Toggle then
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Astral.lua",
+            Text = "Wall Check: Enabled - Only targets outside walls",
+            Duration = 3
+        })
+    else
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Astral.lua",
+            Text = "Wall Check: Disabled",
+            Duration = 3
+        })
+    end
+end)
+
+-- Add Random Target on Death feature to the Mods tab
+local RandomTargetTab = Haka:Tab("Random Target")
+
+RandomTargetTab:Element("Button", "Enable Random Target on Death", {}, function()
+    getgenv().RandomTargetOnDeath = true
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Astral.lua",
+        Text = "Random Target on Death: Enabled",
+        Duration = 3
+    })
+end)
+
+RandomTargetTab:Element("Button", "Disable Random Target on Death", {}, function()
+    getgenv().RandomTargetOnDeath = false
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Astral.lua",
+        Text = "Random Target on Death: Disabled",
+        Duration = 3
+    })
+end)
+
+Lalaka:Element("Button", "CFrame Speed", {}, function() 
+getgenv().Speed = false
+getgenv().SpeedAmount = 2
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Text = "Toggle Speed"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundTransparency = 0.5
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Position = UDim2.new(1, -120, 0, 55)
+ToggleButton.Size = UDim2.new(0, 100, 0, 18)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0) -- KIRMIZI
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Beyaz text
+
+local UICorner = Instance.new("UICorner")
+UICorner.Parent = ToggleButton
+
+local function onButtonClicked()
+    getgenv().Speed = not getgenv().Speed
+end
+
+ToggleButton.MouseButton1Click:Connect(onButtonClicked)
+
+game:GetService("RunService").Stepped:Connect(function()
+    if getgenv().Speed then
+        local lPlr = game:GetService("Players").LocalPlayer
+        if lPlr.Character and lPlr.Character:FindFirstChild("HumanoidRootPart") then
+            lPlr.Character.HumanoidRootPart.CFrame = lPlr.Character.HumanoidRootPart.CFrame + lPlr.Character.Humanoid.MoveDirection * getgenv().SpeedAmount
+        end
+    end
+end)
+end)
+
+Lalaka:Element("TextBox", "SpeedaAmount", {placeholder = "Prediction"})
+
+Lalaka:Element("Button", "Save", {}, function() 
+getgenv().SpeedAmount = values.Haka.Lalaka.SpeedaAmount.Text
+end)
+
+--// TARGET LOCK
+
+local Jaja = misc:MSector("Target Lock", "Left")
+local GAGEJ = Jaja:Tab("Main")
+
+-- Create the tool once and store it globally
+local AstralLockTool = Instance.new("Tool")
+AstralLockTool.RequiresHandle = false
+AstralLockTool.Name = "Astral Lock"
+
+-- Function to give the tool to the player
+local function giveToolToPlayer()
+    local backpack = player:FindFirstChild("Backpack")
+    if backpack then
+        AstralLockTool.Parent = backpack
+    else
+        player.CharacterAdded:Connect(function(character)
+            wait(1)
+            AstralLockTool.Parent = player:WaitForChild("Backpack")
+        end)
+    end
+end
+
+-- Give tool when script starts
+giveToolToPlayer()
+
+-- Also give tool when player respawns
+player.CharacterAdded:Connect(function(character)
+    wait(1)
+    giveToolToPlayer()
+end)
+
+GAGEJ:Element("Button", "Load Target", {}, function() 
+getgenv().Settings = {
+    NyulaRemake = {
+        Enabled = true,
+        PREDICTION = 0.085,
+        JUMPPREDICTION = 0.09,
+        DOT = true,
+        AIRSHOT = false,
+        NOTIF = true,
+        AUTOPRED = false,
+        FOV = math.huge,
+        RESOLVER = false,
+        LOCKTYPE = "Index",
+        DAMAGE_TEXT = true,
+        RANDOM_TARGET_ON_DEATH = false,
+        Resolver = {
+              Enabled = false,
+              Type = "None",
+        },
+        OnHit = {
+             Enabled = false,
+             Hitchams = {
+                   Enabled = false,
+                   Color = Color3.fromRGB(139, 0, 0), -- KIRMIZI
+             },
+            Hitsounds = {
+                  Enabled = false,
+                  Sound = "hitsounds/sparkle.wav",
+            },
+        }
+    }
+}
+
+-- Initialize target filter if not set
+if getgenv().TargetFilter == nil then
+    getgenv().TargetFilter = "Both"
+end
+
+local SelectedPart = "HumanoidRootPart"
+local Prediction = true
+
+    local AnchorCount = 0
+    local MaxAnchor = 50
+ 
+    local CC = game:GetService"Workspace".CurrentCamera
+    local Plr;
+    local enabled = false
+    local targetName = nil
+    local targetType = nil
+    local respawnConnection = nil
+    local healthConnection = nil
+    local lastNoTargetNotification = 0
+    local notificationCooldown = 5
+    
+    local inputService = game:GetService("UserInputService")
+    local touchInput = nil
+    local mousePos = Vector2.new(0, 0)
+    
+    if inputService.MouseEnabled then
+        local mouse = game.Players.LocalPlayer:GetMouse()
+        mousePos = Vector2.new(mouse.X, mouse.Y)
+        
+        game:GetService("RunService").RenderStepped:Connect(function()
+            mousePos = Vector2.new(mouse.X, mouse.Y)
+        end)
+    elseif inputService.TouchEnabled then
+        inputService.TouchStarted:Connect(function(touch, processed)
+            if not processed then
+                mousePos = Vector2.new(touch.Position.X, touch.Position.Y)
+            end
+        end)
+        
+        inputService.TouchMoved:Connect(function(touch, processed)
+            if not processed then
+                mousePos = Vector2.new(touch.Position.X, touch.Position.Y)
+            end
+        end)
+    end
+    
+    local placemarker = Instance.new("Part", game.Workspace)
+    
+    local function isTargetVisible(target)
+        if not getgenv().WallCheck then
+            return true
+        end
+        
+        if not target or not target.Character then
+            return false
+        end
+        
+        local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+        if not targetRoot then
+            return false
+        end
+        
+        local localPlayer = game.Players.LocalPlayer
+        local localCharacter = localPlayer.Character
+        if not localCharacter then
+            return false
+        end
+        
+        local localRoot = localCharacter:FindFirstChild("HumanoidRootPart")
+        if not localRoot then
+            return false
+        end
+        
+        local camera = game.Workspace.CurrentCamera
+        local origin = camera.CFrame.Position
+        local targetPosition = targetRoot.Position
+        local direction = (targetPosition - origin).Unit
+        local distance = (targetPosition - origin).Magnitude
+        
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+        raycastParams.FilterDescendantsInstances = {localCharacter, target.Character}
+        
+        local raycastResult = game.Workspace:Raycast(origin, direction * distance, raycastParams)
+        
+        if raycastResult then
+            return false
+        end
+        
+        return true
+    end
+    
+    local function getRandomPlayer()
+        local players = {}
+        
+        if getgenv().TargetFilter == "Both" or getgenv().TargetFilter == "Players Only" then
+            for i, v in pairs(game.Players:GetPlayers()) do
+                if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+                    if isTargetVisible(v) then
+                        table.insert(players, v)
+                    end
+                end
+            end
+        end
+        
+        if getgenv().TargetFilter == "Both" or getgenv().TargetFilter == "NPCs Only" then
+            for i, v in pairs(workspace:GetChildren()) do
+                if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                    local isPlayerCharacter = false
+                    for _, player in pairs(game.Players:GetPlayers()) do
+                        if player.Character == v then
+                            isPlayerCharacter = true
+                            break
+                        end
+                    end
+                    
+                    if not isPlayerCharacter then
+                        if isTargetVisible({Character = v}) then
+                            table.insert(players, {Character = v})
+                        end
+                    end
+                end
+            end
+        end
+        
+        if #players > 0 then
+            return players[math.random(1, #players)]
+        else
+            return nil
+        end
+    end
+    
+    local function createDamageText(target, damage, position)
+        if not getgenv().Settings.NyulaRemake.DAMAGE_TEXT then return end
+        
+        local damageGui = Instance.new("BillboardGui")
+        damageGui.Adornee = target.Character.HumanoidRootPart
+        damageGui.Size = UDim2.new(0, 60, 0, 20)
+        damageGui.StudsOffset = Vector3.new(0, 2, 0)
+        damageGui.AlwaysOnTop = true
+        damageGui.MaxDistance = 80
+        damageGui.Parent = target.Character.HumanoidRootPart
+        
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.Text = "-" .. math.floor(damage)
+        textLabel.TextColor3 = Color3.fromRGB(139, 0, 0) -- KIRMIZI hasar text
+        textLabel.TextScaled = true
+        textLabel.Font = Enum.Font.GothamBold
+        textLabel.TextSize = 12
+        textLabel.TextStrokeTransparency = 0
+        textLabel.TextStrokeColor3 = Color3.fromRGB(255, 255, 255) -- Beyaz stroke kontrast
+        textLabel.Parent = damageGui
+        
+        local startTime = tick()
+        local duration = 0.8
+        
+        local connection
+        connection = game:GetService("RunService").Heartbeat:Connect(function()
+            local elapsed = tick() - startTime
+            if elapsed > duration then
+                connection:Disconnect()
+                damageGui:Destroy()
+                return
+            end
+            
+            local progress = elapsed / duration
+            damageGui.StudsOffset = Vector3.new(0, 2 + (progress * 3), 0)
+            textLabel.TextTransparency = progress
+            textLabel.TextStrokeTransparency = progress
+            
+            textLabel.TextSize = 10 - (progress * 8)
+        end)
+    end
+
+    local function setupHealthMonitoring(target)
+        if healthConnection then
+            healthConnection:Disconnect()
+            healthConnection = nil
+        end
+        
+        local function setupForCharacter(character)
+            local hum = character:FindFirstChild("Humanoid")
+            if hum then
+                local oldHealth = hum.Health
+                
+                healthConnection = hum.HealthChanged:Connect(function(newHealth)
+                    if newHealth < oldHealth then
+                        local damage = oldHealth - newHealth
+                        
+                        createDamageText(target, damage, character.HumanoidRootPart.Position)
+                        
+                        if getgenv().Settings.NyulaRemake.OnHit.Hitsounds.Enabled then
+                            local las = Instance.new("Sound")
+                            las.Name = "a"
+                            las.Volume = 1
+                            las.SoundId = getcustomasset(getgenv().Settings.NyulaRemake.OnHit.Hitsounds.Sound)
+                            las.Parent = game:GetService("SoundService")
+                            las.Playing = true
+                        end
+                        
+                        if getgenv().Settings.NyulaRemake.OnHit.Hitchams.Enabled then
+                        end
+                        
+                        oldHealth = newHealth
+                    elseif newHealth > oldHealth then
+                        oldHealth = newHealth
+                    end
+                end)
+            end
+        end
+        
+        if target.Character then
+            setupForCharacter(target.Character)
+        end
+        
+        if target.CharacterAdded then
+            target.CharacterAdded:Connect(function(character)
+                wait(1)
+                if enabled and target == Plr then
+                    setupForCharacter(character)
+                end
+            end)
+        end
+    end
+ 
+    function makemarker(Parent, Adornee, Color, Size, Size2)
+        local e = Instance.new("BillboardGui", Parent)
+        e.Name = "PP"
+        e.Adornee = Adornee
+        e.Size = UDim2.new(Size, Size2, Size, Size2)
+        e.AlwaysOnTop = getgenv().Settings.NyulaRemake.DOT
+        local a = Instance.new("Frame", e)
+        if getgenv().Settings.NyulaRemake.DOT == true then
+        a.Size = UDim2.new(1, 1, 1, 1)
+        else
+        a.Size = UDim2.new(0, 0, 0, 0)
+        end
+        if getgenv().Settings.NyulaRemake.DOT == true then
+        a.Transparency = 0
+        a.BackgroundTransparency = 0
+        else
+        a.Transparency = 1
+        a.BackgroundTransparency = 1
+        end
+        a.BackgroundColor3 = Color3.fromRGB(139, 0, 0) -- KIRMIZI DOT
+        local g = Instance.new("UICorner", a)
+        if getgenv().Settings.NyulaRemake.DOT == false then
+        g.CornerRadius = UDim.new(1, 1)
+        else
+        g.CornerRadius = UDim.new(1, 1) 
+        end
+        return(e)
+    end
+ 
+    local function findTargetByName(name, targetType)
+        if targetType == "player" then
+            for i, v in pairs(game.Players:GetPlayers()) do
+                if v.Name == name and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+                    return v
+                end
+            end
+        elseif targetType == "npc" then
+            for i, v in pairs(workspace:GetChildren()) do
+                if v.Name == name and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                    return {Character = v}
+                end
+            end
+        end
+        return nil
+    end
+end)
