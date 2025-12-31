@@ -17,21 +17,21 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.ResetOnSpawn = false
 
 Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(48, 113, 169)
+Frame.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
 Frame.BackgroundTransparency = 0
 Frame.Position = UDim2.new(1, -120, 0, 0)
 Frame.Size = UDim2.new(0, 100, 0, 50)
 
 TextButton.Parent = Frame
-TextButton.BackgroundColor3 = Color3.fromRGB(139, 139, 139)
+TextButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
 TextButton.BackgroundTransparency = 1.000
 TextButton.Size = UDim2.new(1, 0, 1, 0)
 TextButton.Font = Enum.Font.SourceSans
 TextButton.Text = "Astral"
 TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 TextButton.TextScaled = true
-TextButton.TextSize = 15
-TextButton.TextStrokeColor3 = Color3.fromRGB(139, 138, 137)
+TextButton.TextSize = 30
+TextButton.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
 TextButton.TextStrokeTransparency = 0.000
 TextButton.TextWrapped = true
 TextButton.MouseButton1Down:Connect(function()
@@ -39,7 +39,7 @@ library:ToggleMenu()
 end)
 
 UITextSizeConstraint.Parent = TextButton
-UITextSizeConstraint.MaxTextSize = 15
+UITextSizeConstraint.MaxTextSize = 30
 
 local player = game.Players.LocalPlayer
 
@@ -158,8 +158,8 @@ ToggleButton.BackgroundTransparency = 0.5
 ToggleButton.BorderSizePixel = 0
 ToggleButton.Position = UDim2.new(1, -120, 0, 55)
 ToggleButton.Size = UDim2.new(0, 100, 0, 18)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(139, 139, 139)
-ToggleButton.TextColor3 = Color3.fromRGB(139, 139, 139)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local UICorner = Instance.new("UICorner")
 UICorner.Parent = ToggleButton
@@ -170,7 +170,7 @@ end
 
 ToggleButton.MouseButton1Click:Connect(onButtonClicked)
 
-game:GetService("RunService").Stepped:Connect(function()
+local speedConnection = game:GetService("RunService").Stepped:Connect(function()
     if getgenv().Speed then
         local lPlr = game:GetService("Players").LocalPlayer
         if lPlr.Character and lPlr.Character:FindFirstChild("HumanoidRootPart") then
@@ -178,12 +178,19 @@ game:GetService("RunService").Stepped:Connect(function()
         end
     end
 end)
+
+-- Disconnect on script end to avoid leaks
+game.Players.LocalPlayer.CharacterAdded:Connect(function()
+    if speedConnection then
+        speedConnection:Disconnect()
+    end
+end)
 end)
 
-Lalaka:Element("TextBox", "SpeedaAmount", {placeholder = "Prediction"})
+Lalaka:Element("TextBox", "SpeedAmount", {placeholder = "Prediction"})
 
 Lalaka:Element("Button", "Save", {}, function() 
-getgenv().SpeedAmount = values.Haka.Lalaka.SpeedaAmount.Text
+getgenv().SpeedAmount = tonumber(library.values.Haka.Lalaka.SpeedAmount.Text) or 2  -- values düzelt, tonumber ekle
 end)
 
 --// TARGET LOCK
@@ -194,7 +201,7 @@ local GAGEJ = Jaja:Tab("Main")
 -- Create the tool once and store it globally
 local AstralLockTool = Instance.new("Tool")
 AstralLockTool.RequiresHandle = false
-AstralLockTool.Name = "Enes Lock"
+AstralLockTool.Name = "Astral Lock"
 
 -- Function to give the tool to the player
 local function giveToolToPlayer()
@@ -205,7 +212,7 @@ local function giveToolToPlayer()
         player.CharacterAdded:Connect(function(character)
             wait(1)
             AstralLockTool.Parent = player:WaitForChild("Backpack")
-        end)
+        end
     end
 end
 
@@ -222,14 +229,14 @@ GAGEJ:Element("Button", "Load Target", {}, function()
 getgenv().Settings = {
     NyulaRemake = {
         Enabled = true,
-        PREDICTION = 0.085, -- Lowered prediction
-        JUMPPREDICTION = 0.09, -- Lowered jump prediction
+        PREDICTION = 0.12, -- Yükselttim, daha hızlı tahmin
+        JUMPPREDICTION = 0.09,
         DOT = true,
-        AIRSHOT = true,
+        AIRSHOT = false,
         NOTIF = true,
-        AUTOPRED = true,
-        FOV = math.huge,
-        RESOLVER = true,
+        AUTOPRED = false,
+        FOV = 500, -- math.huge yerine 500, ban riski düşük
+        RESOLVER = false,
         LOCKTYPE = "Index",
         DAMAGE_TEXT = true,
         RANDOM_TARGET_ON_DEATH = false, -- New setting
@@ -240,11 +247,11 @@ getgenv().Settings = {
         OnHit = {
              Enabled = false,
              Hitchams = {
-                   Enabled = true,
-                   Color = Color3.fromRGB(137,138,139),
+                   Enabled = false,
+                   Color = Color3.fromRGB(139, 0, 0),
              },
             Hitsounds = {
-                  Enabled = true,
+                  Enabled = false,
                   Sound = "hitsounds/sparkle.wav",
             },
         }
@@ -256,298 +263,318 @@ if getgenv().TargetFilter == nil then
     getgenv().TargetFilter = "Both"
 end
 
-local SelectedPart = "HumanoidRootPart"
+local SelectedPart = "Head" -- Headshot için değiştirdim
 local Prediction = true
 
-    local AnchorCount = 0
-    local MaxAnchor = 100
- 
-    local CC = game:GetService"Workspace".CurrentCamera
-    local Plr;
-    local enabled = false
-    local targetName = nil
-    local targetType = nil
-    local respawnConnection = nil
-    local healthConnection = nil -- Store health connection for respawn
-    local lastNoTargetNotification = 0 -- Track when we last showed "no target" notification
-    local notificationCooldown = 5 -- Cooldown in seconds between "no target" notifications
-    
-    -- Mobile-compatible input detection
-    local inputService = game:GetService("UserInputService")
-    local touchInput = nil
-    local mousePos = Vector2.new(0, 0)
-    
-    -- Handle different input methods
-    if inputService.MouseEnabled then
-        -- Mouse input
-        local mouse = game.Players.LocalPlayer:GetMouse()
-        mousePos = Vector2.new(mouse.X, mouse.Y)
-        
-        game:GetService("RunService").RenderStepped:Connect(function()
-            mousePos = Vector2.new(mouse.X, mouse.Y)
-        end)
-    elseif inputService.TouchEnabled then
-        -- Touch input for mobile
-        inputService.TouchStarted:Connect(function(touch, processed)
-            if not processed then
-                mousePos = Vector2.new(touch.Position.X, touch.Position.Y)
-            end
-        end)
-        
-        inputService.TouchMoved:Connect(function(touch, processed)
-            if not processed then
-                mousePos = Vector2.new(touch.Position.X, touch.Position.Y)
-            end
-        end)
-    end
-    
-    local placemarker = Instance.new("Part", game.Workspace)
-    
-    -- Function to check if target is visible (not behind wall)
-    local function isTargetVisible(target)
-        if not getgenv().WallCheck then
-            return true -- If wall check is disabled, always return true
-        end
-        
-        if not target or not target.Character then
-            return false
-        end
-        
-        local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
-        if not targetRoot then
-            return false
-        end
-        
-        local localPlayer = game.Players.LocalPlayer
-        local localCharacter = localPlayer.Character
-        if not localCharacter then
-            return false
-        end
-        
-        local localRoot = localCharacter:FindFirstChild("HumanoidRootPart")
-        if not localRoot then
-            return false
-        end
-        
-        -- Raycast from camera to target
-        local camera = game.Workspace.CurrentCamera
-        local origin = camera.CFrame.Position
-        local targetPosition = targetRoot.Position
-        local direction = (targetPosition - origin).Unit
-        local distance = (targetPosition - origin).Magnitude
-        
-        -- Create raycast parameters
-        local raycastParams = RaycastParams.new()
-        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-        raycastParams.FilterDescendantsInstances = {localCharacter, target.Character}
-        
-        -- Perform raycast
-        local raycastResult = game.Workspace:Raycast(origin, direction * distance, raycastParams)
-        
-        -- If we hit something, target is behind a wall
-        if raycastResult then
-            return false
-        end
-        
-        return true
-    end
-    
-    -- Function to get a random player with wall check and target filter
-    local function getRandomPlayer()
-        local players = {}
-        
-        -- Add players based on target filter
-        if getgenv().TargetFilter == "Both" or getgenv().TargetFilter == "Players Only" then
-            for i, v in pairs(game.Players:GetPlayers()) do
-                if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
-                    -- Wall check
-                    if isTargetVisible(v) then
-                        table.insert(players, v)
-                    end
-                end
-            end
-        end
-        
-        -- Add NPCs based on target filter
-        if getgenv().TargetFilter == "Both" or getgenv().TargetFilter == "NPCs Only" then
-            for i, v in pairs(workspace:GetChildren()) do
-                if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
-                    local isPlayerCharacter = false
-                    for _, player in pairs(game.Players:GetPlayers()) do
-                        if player.Character == v then
-                            isPlayerCharacter = true
-                            break
-                        end
-                    end
-                    
-                    if not isPlayerCharacter then
-                        -- Wall check for NPCs
-                        if isTargetVisible({Character = v}) then
-                            table.insert(players, {Character = v})
-                        end
-                    end
-                end
-            end
-        end
-        
-        if #players > 0 then
-            return players[math.random(1, #players)]
-        else
-            return nil
-        end
-    end
-    
-    -- Function to create damage text (smaller version with no background box)
-    local function createDamageText(target, damage, position)
-        if not getgenv().Settings.NyulaRemake.DAMAGE_TEXT then return end
-        
-        local damageGui = Instance.new("BillboardGui")
-        damageGui.Adornee = target.Character.HumanoidRootPart
-        damageGui.Size = UDim2.new(0, 60, 0, 20) -- Smaller size
-        damageGui.StudsOffset = Vector3.new(0, 2, 0) -- Lower offset
-        damageGui.AlwaysOnTop = true
-        damageGui.MaxDistance = 80 -- Shorter view distance
-        damageGui.Parent = target.Character.HumanoidRootPart
-        
-        local textLabel = Instance.new("TextLabel")
-        textLabel.Size = UDim2.new(1, 0, 1, 0)
-        textLabel.BackgroundTransparency = 1 -- Completely transparent background (no box)
-        textLabel.Text = "-" .. math.floor(damage)
-        textLabel.TextColor3 = Color3.fromRGB(139, 50, 50)
-        textLabel.TextScaled = true
-        textLabel.Font = Enum.Font.GothamBold
-        textLabel.TextSize = 12 -- Smaller initial text size
-        textLabel.TextStrokeTransparency = 0
-        textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-        textLabel.Parent = damageGui
-        
-        -- Animate the damage text
-        local startTime = tick()
-        local duration = 0.8 -- Slightly shorter duration
-        
-        local connection
-        connection = game:GetService("RunService").Heartbeat:Connect(function()
-            local elapsed = tick() - startTime
-            if elapsed > duration then
-                connection:Disconnect()
-                damageGui:Destroy()
-                return
-            end
-            
-            -- Move upward and fade out
-            local progress = elapsed / duration
-            damageGui.StudsOffset = Vector3.new(0, 2 + (progress * 3), 0) -- Less movement
-            textLabel.TextTransparency = progress
-            textLabel.TextStrokeTransparency = progress
-            
-            -- Make text even smaller as it fades
-            textLabel.TextSize = 10 - (progress * 8) -- Smaller scaling
-        end)
-    end
+local AnchorCount = 0
+local MaxAnchor = 100 -- 100 yaptım
 
-    -- Function to setup health monitoring for damage text with respawn support
-    local function setupHealthMonitoring(target)
-        if healthConnection then
-            healthConnection:Disconnect()
-            healthConnection = nil
-        end
+local CC = game:GetService("Workspace").CurrentCamera
+local Plr;
+local enabled = false
+local targetName = nil
+local targetType = nil
+local respawnConnection = nil
+local healthConnection = nil -- Store health connection for respawn
+local lastNoTargetNotification = 0 -- Track when we last showed "no target" notification
+local notificationCooldown = 5 -- Cooldown in seconds between "no target" notifications
+    
+-- Mobile-compatible input detection
+local inputService = game:GetService("UserInputService")
+local touchInput = nil
+local mousePos = Vector2.new(0, 0)
+    
+-- Handle different input methods
+if inputService.MouseEnabled then
+    -- Mouse input
+    local mouse = game.Players.LocalPlayer:GetMouse()
+    mousePos = Vector2.new(mouse.X, mouse.Y)
         
-        -- Function to actually set up the health monitoring for a character
-        local function setupForCharacter(character)
-            local hum = character:FindFirstChild("Humanoid")
-            if hum then
-                local oldHealth = hum.Health
-                
-                healthConnection = hum.HealthChanged:Connect(function(newHealth)
-                    if newHealth < oldHealth then
-                        local damage = oldHealth - newHealth
-                        
-                        -- Show damage text
-                        createDamageText(target, damage, character.HumanoidRootPart.Position)
-                        
-                        if getgenv().Settings.NyulaRemake.OnHit.Hitsounds.Enabled then
-                            local las = Instance.new("Sound")
-                            las.Name = "a"
-                            las.Volume = 1
-                            las.SoundId = getcustomasset(getgenv().Settings.NyulaRemake.OnHit.Hitsounds.Sound)
-                            las.Parent = game:GetService("SoundService")
-                            las.Playing = true
-                        end
-                        
-                        if getgenv().Settings.NyulaRemake.OnHit.Hitchams.Enabled then
-                            -- hitchams(target) -- This function needs to be defined
-                        end
-                        
-                        oldHealth = newHealth
-                    elseif newHealth > oldHealth then
-                        -- Health increased (healing), update old health
-                        oldHealth = newHealth
-                    end
-                end)
+    game:GetService("RunService").RenderStepped:Connect(function()
+        mousePos = Vector2.new(mouse.X, mouse.Y)
+    end)
+elseif inputService.TouchEnabled then
+    -- Touch input for mobile
+    inputService.TouchStarted:Connect(function(touch, processed)
+        if not processed then
+            mousePos = Vector2.new(touch.Position.X, touch.Position.Y)
+        end
+    end)
+        
+    inputService.TouchMoved:Connect(function(touch, processed)
+        if not processed then
+            mousePos = Vector2.new(touch.Position.X, touch.Position.Y)
+        end
+    end)
+end
+    
+local placemarker = Instance.new("Part", game.Workspace)
+    
+local function isTargetVisible(target)
+    if not getgenv().WallCheck then
+        return true -- If wall check is disabled, always return true
+    end
+        
+    if not target or not target.Character then
+        return false
+    end
+        
+    local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    if not targetRoot then
+        return false
+    end
+        
+    local localPlayer = game.Players.LocalPlayer
+    local localCharacter = localPlayer.Character
+    if not localCharacter then
+        return false
+    end
+        
+    local localRoot = localCharacter:FindFirstChild("HumanoidRootPart")
+    if not localRoot then
+        return false
+    end
+        
+    -- Raycast from camera to target
+    local camera = game.Workspace.CurrentCamera
+    local origin = camera.CFrame.Position
+    local targetPosition = targetRoot.Position
+    local direction = (targetPosition - origin).Unit
+    local distance = (targetPosition - origin).Magnitude
+        
+    -- Create raycast parameters
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    raycastParams.FilterDescendantsInstances = {localCharacter, target.Character} -- Blacklist yerine Exclude
+        
+    -- Perform raycast
+    local raycastResult = game.Workspace:Raycast(origin, direction * distance, raycastParams)
+        
+    -- If we hit something, target is behind a wall
+    if raycastResult then
+        return false
+    end
+        
+    return true
+end
+    
+local function getRandomPlayer()
+    local players = {}
+        
+    -- Add players based on target filter
+    if getgenv().TargetFilter == "Both" or getgenv().TargetFilter = "Players Only" then
+        for i, v in pairs(game.Players:GetPlayers()) do
+            if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+                -- Wall check
+                if isTargetVisible(v) then
+                    table.insert(players, v)
+                end
             end
         end
+    end
         
-        -- Set up for current character if it exists
-        if target.Character then
-            setupForCharacter(target.Character)
+    -- Add NPCs based on target filter
+    if getgenv().TargetFilter == "Both" or getgenv().TargetFilter = "NPCs Only" then
+        for i, v in pairs(game.Workspace:GetChildren()) do
+            if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                local isPlayerCharacter = false
+                for _, player in pairs(game.Players:GetPlayers()) do
+                    if player.Character == v then
+                        isPlayerCharacter = true
+                        break
+                    end
+                end
+                    
+                if not isPlayerCharacter then
+                    -- Wall check for NPCs
+                    if isTargetVisible({Character = v}) then
+                        table.insert(players, {Character = v})
+                    end
+                end
+            end
         end
+    end
         
-        -- Also set up for when the character respawns
-        if target.CharacterAdded then
-            target.CharacterAdded:Connect(function(character)
-                wait(1) -- Wait a moment for the character to fully load
-                if enabled and target == Plr then -- Only setup if still targeting this player
-                    setupForCharacter(character)
+    if #players > 0 then
+        return players[math.random(1, #players)]
+    else
+        return nil
+    end
+end
+    
+local function createDamageText(target, damage, position)
+    if not getgenv().Settings.NyulaRemake.DAMAGE_TEXT then return end
+        
+    local damageGui = Instance.new("BillboardGui")
+    damageGui.Adornee = target.Character.HumanoidRootPart
+    damageGui.Size = UDim2.new(0, 60, 0, 20) -- Smaller size
+    damageGui.StudsOffset = Vector3.new(0, 2, 0) -- Lower offset
+    damageGui.AlwaysOnTop = true
+    damageGui.MaxDistance = 80 -- Shorter view distance
+    damageGui.Parent = target.Character.HumanoidRootPart
+        
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1 -- Completely transparent background (no box)
+    textLabel.Text = "-" .. math.floor(damage)
+    textLabel.TextColor3 = Color3.fromRGB(139, 0, 0)
+    textLabel.TextScaled = true
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextSize = 12 -- Smaller initial text size
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    textLabel.Parent = damageGui
+        
+    -- Animate the damage text
+    local startTime = tick()
+    local duration = 0.8 -- Slightly shorter duration
+        
+    local connection
+    connection = game:GetService("RunService").Heartbeat:Connect(function()
+        local elapsed = tick() - startTime
+        if elapsed > duration then
+            connection:Disconnect()
+            damageGui:Destroy()
+            return
+        end
+            
+        -- Move upward and fade out
+        local progress = elapsed / duration
+        damageGui.StudsOffset = Vector3.new(0, 2 + (progress * 3), 0) -- Less movement
+        textLabel.TextTransparency = progress
+        textLabel.TextStrokeTransparency = progress
+            
+        -- Make text even smaller as it fades
+        textLabel.TextSize = 10 - (progress * 8) -- Smaller scaling
+    end)
+end
+
+local function setupHealthMonitoring(target)
+    if healthConnection then
+        healthConnection:Disconnect()
+        healthConnection = nil
+    end
+        
+    -- Function to actually set up the health monitoring for a character
+    local function setupForCharacter(character)
+        local hum = character:FindFirstChild("Humanoid")
+        if hum then
+            local oldHealth = hum.Health
+                
+            healthConnection = hum.HealthChanged:Connect(function(newHealth)
+                if newHealth < oldHealth then
+                    local damage = oldHealth - newHealth
+                        
+                    -- Show damage text
+                    createDamageText(target, damage, character.HumanoidRootPart.Position)
+                        
+                    if getgenv().Settings.NyulaRemake.OnHit.Hitsounds.Enabled then
+                        local las = Instance.new("Sound")
+                        las.Name = "a"
+                        las.Volume = 1
+                        las.SoundId = getcustomasset(getgenv().Settings.NyulaRemake.OnHit.Hitsounds.Sound)
+                        las.Parent = game:GetService("SoundService")
+                        las.Playing = true
+                    end
+                        
+                    if getgenv().Settings.NyulaRemake.OnHit.Hitchams.Enabled then
+                        -- hitchams(target) -- Fonksiyon tanımlı değil, yorumlu bırak
+                    end
+                        
+                    oldHealth = newHealth
+                elseif newHealth > oldHealth then
+                    -- Health increased (healing), update old health
+                    oldHealth = newHealth
                 end
             end)
         end
     end
- 
-    function makemarker(Parent, Adornee, Color, Size, Size2)
-        local e = Instance.new("BillboardGui", Parent)
-        e.Name = "PP"
-        e.Adornee = Adornee
-        e.Size = UDim2.new(Size, Size2, Size, Size2)
-        e.AlwaysOnTop = getgenv().Settings.NyulaRemake.DOT
-        local a = Instance.new("Frame", e)
-        if getgenv().Settings.NyulaRemake.DOT == true then
-        a.Size = UDim2.new(1, 1, 1, 1)
-        else
-        a.Size = UDim2.new(0, 0, 0, 0)
-        end
-        if getgenv().Settings.NyulaRemake.DOT == true then
-        a.Transparency = 0
-        a.BackgroundTransparency = 0
-        else
-        a.Transparency = 1
-        a.BackgroundTransparency = 1
-        end
-        a.BackgroundColor3 = Color
-        local g = Instance.new("UICorner", a)
-        if getgenv().Settings.EnesLock.DOT == false then
-        g.CornerRadius = UDim.new(1, 1)
-        else
-        g.CornerRadius = UDim.new(1, 1) 
-        end
-        return(e)
+        
+    -- Set up for current character if it exists
+    if target.Character then
+        setupForCharacter(target.Character)
     end
- 
-    local function findTargetByName(name, targetType)
-        if targetType == "player" then
-            for i, v in pairs(game.Players:GetPlayers()) do
-                if v.Name == name and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
-                    return v
-                end
+        
+    -- Also set up for when the character respawns
+    if target.CharacterAdded then
+        target.CharacterAdded:Connect(function(character)
+            wait(1) -- Wait a moment for the character to fully load
+            if enabled and target == Plr then -- Only setup if still targeting this player
+                setupForCharacter(character)
             end
-        elseif targetType == "npc" then
-            for i, v in pairs(workspace:GetChildren()) do
-                if v.Name == name and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
-                    return {Character = v}
-                end
+        end)
+    end
+end
+ 
+function makemarker(Parent, Adornee, Color, Size, Size2)
+    local e = Instance.new("BillboardGui", Parent)
+    e.Name = "PP"
+    e.Adornee = Adornee
+    e.Size = UDim2.new(Size, Size2, Size, Size2)
+    e.AlwaysOnTop = getgenv().Settings.NyulaRemake.DOT
+    local a = Instance.new("Frame", e)
+    if getgenv().Settings.NyulaRemake.DOT == true then
+    a.Size = UDim2.new(1, 1, 1, 1)
+    else
+    a.Size = UDim2.new(0, 0, 0, 0)
+    end
+    if getgenv().Settings.NyulaRemake.DOT == true then
+    a.Transparency = 0
+    a.BackgroundTransparency = 0
+    else
+    a.Transparency = 1
+    a.BackgroundTransparency = 1
+    end
+    a.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+    local g = Instance.new("UICorner", a)
+    if getgenv().Settings.NyulaRemake.DOT == false then
+    g.CornerRadius = UDim.new(1, 1)
+    else
+    g.CornerRadius = UDim.new(1, 1) 
+    end
+    return(e)
+end
+ 
+local function findTargetByName(name, targetType)
+    if targetType == "player" then
+        for i, v in pairs(game.Players:GetPlayers()) do
+            if v.Name == name and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+                return v
             end
         end
-        return nil
+    elseif targetType == "npc" then
+        for i, v in pairs(game.Workspace:GetChildren()) do
+            if v.Name == name and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                return {Character = v}
+            end
+        end
     end
+    return nil
+end
  
-    local function monitorRespawn()
-        if respaw
+local function monitorRespawn(target)
+    if respawnConnection then
+        respawnConnection:Disconnect()
+    end
+    respawnConnection = target.CharacterAdded:Connect(function(newCharacter)
+        wait(1)
+        if enabled and Plr == target then
+            setupHealthMonitoring(target)
+            -- Re-lock aimbot
+            AnchorCount = 0  -- Reset anchor on respawn
+            if getgenv().RandomTargetOnDeath then
+                Plr = getRandomPlayer()
+            end
+        end
+    end)
+end
+
+-- Main Aimbot Loop (Tamamlandı)
+local aimbotConnection
+aimbotConnection = game:GetService("RunService").RenderStepped:Connect(function()
+    if enabled and Plr and Plr.Character and Plr.Character:FindFirstChild(SelectedPart) then
+        local targetPos = Plr.Character[SelectedPart].Position
+        if Prediction then
+            targetPos = targetPos + Plr.Character.HumanoidRootPart.Velocity * getgenv().Settings.NyulaRemake.PREDICTION
+        end
+        CC.CFram
